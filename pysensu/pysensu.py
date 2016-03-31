@@ -38,35 +38,38 @@ class Pysensu():
         else:
             raise ValueError("Invalid method")
 
+    def format_url(self, path, *args):
+        return "{}/{}".format(self.api_url, path.format(*args))
+
     def create_stash(self, client, check=None):
         if check:
-            r = self._api_call("{}/stashes/{}/{}".format(self.api_url, client, check), "post", "{}")
+            r = self._api_call(self.format_url("stashes/{}/{}", client, check), "post", "{}")
         else:
-            r = self._api_call("{}/stashes/{}".format(self.api_url, client), "post", "{}")
+            r = self._api_call(self.format_url("stashes/{}", client), "post", "{}")
         if r.status_code != requests.codes.created:
             raise ValueError("Error creating stash ({})".format(r.status_code))
 
     def delete_stash(self, client, check=None):
         if check:
-            r = self._api_call("{}/stashes/{}/{}".format(self.api_url, client, check), "delete")
+            r = self._api_call(self.format_url("stashes/{}/{}", client, check), "delete")
         else:
-            r = self._api_call("{}/stashes/{}".format(self.api_url, client), "delete")
+            r = self._api_call(self.format_url("stashes/{}", client), "delete")
         if r.status_code != requests.codes.no_content:
             raise ValueError("Error deleting stash ({})".format(r.status_code))
 
     def delete_client(self, client):
-        r = self._api_call("{}/clients/{}".format(self.api_url, client), "delete")
+        r = self._api_call(self.format_url("clients/{}", client), "delete")
         if r.status_code != requests.codes.accepted:
             raise ValueError("Error deleting client ({})".format(r.status_code))
 
     def get_client_history(self, client):
-        r = self._api_call("{}/clients/{}/history".format(self.api_url, client), "get")
+        r = self._api_call(self.format_url("clients/{}/history", client), "get")
         if r.status_code != requests.codes.ok:
             raise ValueError("Error getting client history ({})".format(r.status_code))
         return r.json()
 
     def get_client(self, client):
-        r = self._api_call("{}/clients/{}".format(self.api_url, client), "get")
+        r = self._api_call(self.format_url("clients/{}", client), "get")
         if r.status_code != requests.codes.ok:
             raise ValueError("Error getting client ({})".format(r.status_code))
         return r.json()
@@ -78,19 +81,19 @@ class Pysensu():
         return r.json()
 
     def get_all_stashes(self):
-        r = self._api_call("{}/stashes".format(self.api_url), "get")
+        r = self._api_call(self.format_url("stashes"), "get")
         if r.status_code != requests.codes.ok:
             raise ValueError("Error getting stashes ({})".format(r.status_code))
         return r.json()
 
     def get_check(self, check):
-        r = self._api_call("{}/checks/{}".format(self.api_url, check), "get")
+        r = self._api_call(self.format_url("checks/{}", check), "get")
         if r.status_code != requests.codes.ok:
             raise ValueError("Error getting check ({})".format(r.status_code))
         return r.json()
 
     def get_all_checks(self):
-        r = self._api_call("{}/checks".format(self.api_url), "get")
+        r = self._api_call(self.format_url("checks"), "get")
         if r.status_code != requests.codes.ok:
             raise ValueError("Error getting checks ({})".format(r.status_code))
         return r.json()
@@ -100,30 +103,30 @@ class Pysensu():
             "check": check,
             "subscribers": subscribers
         }
-        r = self._api_call("{}/check/request".format(self.api_url), "post", json.dumps(data))
+        r = self._api_call(self.format_url("check/request"), "post", json.dumps(data))
         if r.status_code != requests.codes.accepted:
             raise ValueError("Error requesting check ({}, {})".format(r.status_code, r.json))
 
     def get_all_events(self):
-        r = self._api_call("{}/events".format(self.api_url), "get")
+        r = self._api_call(self.format_url("events"), "get")
         if r.status_code != requests.codes.ok:
             raise ValueError("Error getting events ({})".format(r.status_code))
         return r.json()
 
     def get_all_client_events(self, client):
-        r = self._api_call("{}/events/{}".format(self.api_url, client), "get")
+        r = self._api_call(self.format_url("events/{}", client), "get")
         if r.status_code != requests.codes.ok:
             raise ValueError("Error getting client events ({})".format(r.status_code))
         return r.json()
 
     def get_event(self, client, check):
-        r = self._api_call("{}/events/{}/{}".format(self.api_url, client, check), "get")
+        r = self._api_call(self.format_url("events/{}/{}", client, check), "get")
         if r.status_code != requests.codes.ok:
             raise ValueError("Error getting event ({})".format(r.status_code))
         return r.json()
 
     def delete_event(self, client, check):
-        r = self._api_call("{}/events/{}/{}".format(self.api_url, client, check), "delete")
+        r = self._api_call(self.format_url("events/{}/{}", client, check), "delete")
         if r.status_code != requests.codes.accepted:
             raise ValueError("Error deleting event ({})".format(r.status_code))
 
@@ -132,6 +135,6 @@ class Pysensu():
             "client": client,
             "check": check
         }
-        r = self._api_call("{}/event/resolve".format(self.api_url), "post", json.dumps(data))
+        r = self._api_call(self.format_url("event/resolve"), "post", json.dumps(data))
         if r.status_code != requests.codes.accepted:
             raise ValueError("Error getting client({})".format(r.status_code))
