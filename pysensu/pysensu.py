@@ -1,20 +1,23 @@
 #!/usr/bin/env python
 
-import json
 import requests
 
 
 class Pysensu():
-    def __init__(self, host, user=None, password=None, port=4567, ssl=False):
+    def __init__(self, host, user=None, password=None, port=4567,
+                 ssl=False, ssl_cert=None, ssl_key=None, ssl_verify=None):
         self.host = host
         self.user = user
         self.password = password
         self.port = port
         self.ssl = ssl
+        self.ssl_cert = ssl_cert
+        self.ssl_key = ssl_key
+        self.ssl_verify = ssl_verify
         self.api_url = self._build_api_url(host, user, password, port, ssl)
 
     def _build_api_url(self, host, user, password, port, ssl):
-        if ssl == True:
+        if ssl is True:
             protocol = 'https'
         else:
             protocol = 'http'
@@ -27,14 +30,22 @@ class Pysensu():
         return "{}://{}{}:{}".format(protocol, credentials, host, port)
 
     def _api_call(self, url, method, data=None):
-        if method == "post":
-            return requests.post(url, data=data)
-        elif method == "get":
-            return requests.get(url, data=data)
-        elif method == "put":
-            return requests.put(url, data=data)
-        elif method == "delete":
-            return requests.delete(url, data=data)
+        if method in ("post", "get", "put", "delete"):
+            request_kwargs = dict(
+                method=method,
+                url=url,
+                json=data,
+            )
+
+            if self.ssl_cert and self.ssl_key:
+                request_kwargs['cert'] = (self.ssl_cert, self.ssl_key)
+            elif self.ssl_cert:
+                request_kwargs['cert'] = self.ssl_cert
+
+            if self.ssl_verify:
+                request_kwargs['verify'] = self.ssl_verify
+
+            return requests.request(**request_kwargs)
         else:
             raise ValueError("Invalid method: '{}'".format(method))
 
@@ -108,7 +119,7 @@ class Pysensu():
             "check": check,
             "subscribers": subscribers
         }
-        r = self._api_call(self.format_url("check/request"), "post", json.dumps(data))
+        r = self._api_call(self.format_url("check/request"), "post", data=data)
         if r.status_code != requests.codes.accepted:
             self.failed_request(method="requesting check", response=r)
 
@@ -140,6 +151,6 @@ class Pysensu():
             "client": client,
             "check": check
         }
-        r = self._api_call(self.format_url("event/resolve"), "post", json.dumps(data))
+        r = self._api_call(self.format_url("event/resolve"), "post", data=data)
         if r.status_code != requests.codes.accepted:
             self.failed_request(method="getting client", response=r)
