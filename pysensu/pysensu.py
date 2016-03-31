@@ -45,7 +45,14 @@ class Pysensu():
             if self.ssl_verify:
                 request_kwargs['verify'] = self.ssl_verify
 
-            return requests.request(**request_kwargs)
+            try:
+                response = requests.request(**request_kwargs)
+            except Exception as e:
+                import traceback
+                raise ValueError("Request: %s\nException: %s\n%s",
+                                 request_kwargs, e, traceback.format_exc(e))
+
+            return response
         else:
             raise ValueError("Invalid method: '{}'".format(method))
 
