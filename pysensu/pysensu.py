@@ -93,6 +93,17 @@ class Pysensu():
         if r.status_code != requests.codes.created:
             self.failed_request(method="creating client", response=r)
 
+    def update_client(self, name, address, subscriptions=[], **kwargs):
+        data = dict(
+            name=name,
+            address=address,
+            subscriptions=subscriptions,
+            **kwargs)
+
+        r = self._api_call(self.format_url("clients/{}", name), "post", data=data)
+        if r.status_code != requests.codes.created:
+            self.failed_request(method="updating client", response=r)
+
     def delete_client(self, client):
         r = self._api_call(self.format_url("clients/{}", client), "delete")
         if r.status_code != requests.codes.accepted:
