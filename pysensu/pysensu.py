@@ -45,6 +45,8 @@ class Pysensu():
             if self.ssl_verify:
                 request_kwargs['verify'] = self.ssl_verify
 
+            request_kwargs['verify'] = False
+
             try:
                 response = requests.request(**request_kwargs)
             except Exception as e:
